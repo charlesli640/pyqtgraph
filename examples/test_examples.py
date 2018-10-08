@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 from pyqtgraph import Qt
-from . import utils
+import utils
 import itertools
 import pytest
 import os, sys

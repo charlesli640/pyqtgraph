@@ -9,10 +9,31 @@ import initExample
 
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
+from pyqtgraph.ptime import time
 import numpy as np
 
+class MyGLView(gl.GLViewWidget):
+    def __init__(self, *args, **kwargs):
+        super(MyGLView, self).__init__(*args, **kwargs)
+        self.fps = None
+        self.lastTime = time()
+    def paintGL(self, *args, **kwds):
+        gl.GLViewWidget.paintGL(self, *args, **kwds)
+        
+        now = time()
+        dt = now - self.lastTime
+        self.lastTime = now
+        if self.fps is None:
+            self.fps = 1.0/dt
+        else:
+            s = np.clip(dt*3., 0, 1)
+            self.fps = self.fps * (1-s) + (1.0/dt) * s
+        self.qglColor(QtCore.Qt.red)
+        self.renderText(0,0,0,'fps={:4.2f}'.format(self.fps))
+        print("fps={:4.2f} last={} now={}".format(self.fps, self.lastTime, now))
+
 app = QtGui.QApplication([])
-w = gl.GLViewWidget()
+w = MyGLView() #gl.GLViewWidget()
 w.opts['distance'] = 20
 w.show()
 w.setWindowTitle('pyqtgraph example: GLScatterPlotItem')
@@ -57,7 +78,7 @@ pos[0] = (0,0,0)
 color = np.ones((pos.shape[0], 4))
 d2 = (pos**2).sum(axis=1)**0.5
 size = np.random.random(size=pos.shape[0])*10
-sp2 = gl.GLScatterPlotItem(pos=pos, color=(1,1,1,1), size=size)
+sp2 = gl.GLScatterPlotItem(pos=pos, color=(1,1,1,1), size=size, pxMode=True)
 phase = 0.
 
 w.addItem(sp2)
@@ -77,8 +98,11 @@ sp3 = gl.GLScatterPlotItem(pos=pos3, color=(1,1,1,.3), size=0.1, pxMode=False)
 
 w.addItem(sp3)
 
+fps = None
+lastTime = time()
 
 def update():
+    t1 = time()
     ## update volume colors
     global phase, sp2, d2
     s = -np.cos(d2*2+phase)
@@ -90,6 +114,7 @@ def update():
     sp2.setData(color=color)
     phase -= 0.1
     
+    t2 = time()
     ## update surface positions and colors
     global sp3, d3, pos3
     z = -np.cos(d3*2+phase)
@@ -100,10 +125,12 @@ def update():
     color[:,1] = np.clip(z * 1.0, 0, 1)
     color[:,2] = np.clip(z ** 3, 0, 1)
     sp3.setData(pos=pos3, color=color)
-    
+    t3 = time()
+    print("t1={}, t2={}, t3={}".format(t1, t2, t3))
+
 t = QtCore.QTimer()
 t.timeout.connect(update)
-t.start(50)
+t.start(0)
 
 
 ## Start Qt event loop unless running in interactive mode.

@@ -45,13 +45,15 @@ lastTime = time()
 fps = None
 def update():
     global curve, data, ptr, p, lastTime, fps
+    t1 = time()
     p.clear()
     if ui.randCheck.isChecked():
         size = sizeArray
     else:
         size = ui.sizeSpin.value()
+    t2 = time()
     curve = pg.ScatterPlotItem(x=data[ptr%50], y=data[(ptr+1)%50], 
-                               pen='w', brush='b', size=size, 
+                               pen='w', brush=(255, 0, 0), size=size, 
                                pxMode=ui.pixelModeCheck.isChecked())
     p.addItem(curve)
     ptr += 1
@@ -65,6 +67,8 @@ def update():
         fps = fps * (1-s) + (1.0/dt) * s
     p.setTitle('%0.2f fps' % fps)
     p.repaint()
+    t3 = time()
+    print("t1={}, t2={}, t3={}, t4={}".format(t1, t2, now, t3))
     #app.processEvents()  ## force complete redraw for every plot
 timer = QtCore.QTimer()
 timer.timeout.connect(update)

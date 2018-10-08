@@ -83,6 +83,16 @@ random_str = lambda : (''.join([chr(np.random.randint(ord('A'),ord('z'))) for i 
 
 s2 = pg.ScatterPlotItem(size=10, pen=pg.mkPen('w'), pxMode=True)
 pos = np.random.normal(size=(2,n), scale=1e-5)
+#symbol	can be one (or a list) of:
+    # * ‘o’ circle (default)
+    # * ‘s’ square
+    # * ‘t’ triangle
+    # * ‘d’ diamond
+    # * ‘+’ plus
+    # * any QPainterPath to specify custom symbol shapes.
+    # To properly obey the position and size, custom symbols should be centered at (0,0) and width and height of 1.0.
+    # Note that it is also possible to ‘install’ custom shapes by setting ScatterPlotItem.Symbols[key] = shape.
+
 spots = [{'pos': pos[:,i], 'data': 1, 'brush':pg.intColor(i, n), 'symbol': i%5, 'size': 5+i/10.} for i in range(n)]
 s2.addPoints(spots)
 spots = [{'pos': pos[:,i], 'data': 1, 'brush':pg.intColor(i, n), 'symbol': label[1], 'size': label[2]*(5+i/10.)} for (i, label) in [(i, createLabel(*random_str())) for i in range(n)]]
@@ -99,7 +109,7 @@ s3 = pg.ScatterPlotItem(pxMode=False)   ## Set pxMode=False to allow spots to tr
 spots3 = []
 for i in range(10):
     for j in range(10):
-        spots3.append({'pos': (1e-6*i, 1e-6*j), 'size': 1e-6, 'pen': {'color': 'w', 'width': 2}, 'brush':pg.intColor(i*10+j, 100)})
+        spots3.append({'pos': (1e-6*i, 1e-6*j), 'size': 1e-6, 'symbol': 's', 'pen': {'color': 'w', 'width': 2}, 'brush':pg.intColor(i*10+j, 100)})
 s3.addPoints(spots3)
 w3.addItem(s3)
 s3.sigClicked.connect(clicked)

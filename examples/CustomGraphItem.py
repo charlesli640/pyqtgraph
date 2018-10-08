@@ -4,9 +4,10 @@ Simple example of subclassing GraphItem.
 """
 
 import initExample ## Add path to library (just for examples; you do not need this)
-
+import random
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.ptime import time
 import numpy as np
 
 # Enable antialiasing for prettier plots
@@ -87,46 +88,76 @@ class Graph(pg.GraphItem):
 g = Graph()
 v.addItem(g)
 
-## Define positions of nodes
-pos = np.array([
-    [0,0],
-    [10,0],
-    [0,10],
-    [10,10],
-    [5,5],
-    [15,5]
-    ], dtype=float)
-    
-## Define the set of connections in the graph
-adj = np.array([
-    [0,1],
-    [1,3],
-    [3,2],
-    [2,0],
-    [1,5],
-    [3,5],
-    ])
-    
-## Define the symbol to use for each node (this is optional)
-symbols = ['o','o','o','o','t','+']
-
-## Define the line style for each connection (this is optional)
-lines = np.array([
-    (255,0,0,255,1),
-    (255,0,255,255,2),
-    (255,0,255,255,3),
-    (255,255,0,255,2),
-    (255,0,0,255,1),
-    (255,255,255,255,4),
-    ], dtype=[('red',np.ubyte),('green',np.ubyte),('blue',np.ubyte),('alpha',np.ubyte),('width',float)])
-
-## Define text to show next to each symbol
-texts = ["Point %d" % i for i in range(6)]
+textFps = pg.TextItem(html='<div style="text-align: center"><span style="color: #FFF;">This is the</span><br><span style="color: #FF0; font-size: 16pt;">Project 某某项目 </span></div>', anchor=(-0.3,0.5), angle=0, border='w', fill=(0, 0, 255, 100))
+v.addItem(textFps)
 
 ## Update the graph
-g.setData(pos=pos, adj=adj, pen=lines, size=1, symbol=symbols, pxMode=False, text=texts)
+#g.setData(pos=pos, adj=adj, pen=lines, size=1, symbol=symbols, pxMode=False, text=texts)
+fps = None
+lastTime = time()
 
+posa = []
+C=30
+R=30
+N = C*R
+## Define positions of nodes
+for i in range(R):
+    for j in range(C):
+        p = [i*5, j*5]
+        posa.append(p)
 
+pos = np.array(posa, dtype=float)
+textFps.setPos(0, 5*R+30)
+
+def update():
+    global g, pos, textFps, fps, lastTime
+    
+    ## Define the symbol to use for each node (this is optional)
+    #symbols = ['o','o','o','o','t','+']
+    
+    ## Define the line style for each connection (this is optional)
+    #lines = np.array([
+    #    (255,0,0,255,1),
+    #    (255,0,255,255,2),
+    #    (255,0,255,255,3),
+    #    (255,255,0,255,2),
+    #    (255,0,0,255,1),
+    #    (255,255,255,255,4),
+    #    ], dtype=[('red',np.ubyte),('green',np.ubyte),('blue',np.ubyte),('alpha',np.ubyte),('width',float)])
+
+    ## Define text to show next to each symbol
+    #texts = ["Point %d" % i for i in range(N)]
+
+    #colors=[]
+    #for i in range(N):
+        #c = random.uniform(0, 1) # (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    #    c = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    #    colors.append(c)
+    t0 = time()
+    clrs = np.random.rand(N)
+    #clrs = clrs*255
+    #clrs = clrs.astype(dtype=np.ubyte)
+    t1 = time()
+    g.setData(pos=pos, size=1, pxMode=False, symbol='o', symbolBrush=clrs)
+
+    now = time()
+    dt = now - lastTime
+    lastTime = now
+    if fps is None:
+        fps = 1.0/dt
+    else:
+        s = np.clip(dt*3., 0, 1)
+        fps = fps * (1-s) + (1.0/dt) * s
+
+    html='<div style="text-align: center"><span style="color: #FFF;">This is the</span><br><span style="color: #FF0; font-size: 16pt;">Project 某某项目 {:.2f}</span></div>'.format(fps)
+    textFps.setHtml(html)
+
+    print("t0={} t1={} t2={}".format(t0, t1, now))
+
+#update()
+timer = QtCore.QTimer()
+timer.timeout.connect(update)
+timer.start(0)
 
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
